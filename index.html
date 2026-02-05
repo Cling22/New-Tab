@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>New Tab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --nav-height: 56px;
+
+      /* Dark */
+      --dark-bg: #0f172a;
+      --dark-bg-2: #111827;
+      --dark-border: #1f2937;
+      --dark-text: #e5e7eb;
+      --dark-accent: #38bdf8;
+
+      /* Light */
+      --light-bg: #f8fafc;
+      --light-bg-2: #ffffff;
+      --light-border: #e5e7eb;
+      --light-text: #0f172a;
+      --light-accent: #0284c7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    body.dark { background: var(--dark-bg); color: var(--dark-text); }
+    body.light { background: var(--light-bg); color: var(--light-text); }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      z-index: 1000;
+      border-bottom: 1px solid;
+    }
+
+    body.dark nav {
+      background: var(--dark-bg);
+      border-color: var(--dark-border);
+    }
+
+    body.light nav {
+      background: var(--light-bg-2);
+      border-color: var(--light-border);
+    }
+
+    .title { font-weight: 600; white-space: nowrap; }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    .tab {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+      border: 1px solid transparent;
+      transition: background 0.15s, border 0.15s;
+    }
+
+    body.dark .tab { color: var(--dark-text); }
+    body.light .tab { color: var(--light-text); }
+
+    body.dark .tab:hover { background: var(--dark-bg-2); }
+    body.light .tab:hover { background: #f1f5f9; }
+
+    .tab.active { font-weight: 600; }
+
+    body.dark .tab.active {
+      border-color: var(--dark-accent);
+      color: var(--dark-accent);
+    }
+
+    body.light .tab.active {
+      border-color: var(--light-accent);
+      color: var(--light-accent);
+    }
+
+    .theme-toggle {
+      cursor: pointer;
+      border: 1px solid;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      background: none;
+    }
+
+    body.dark .theme-toggle {
+      border-color: var(--dark-border);
+      color: var(--dark-text);
+    }
+
+    body.light .theme-toggle {
+      border-color: var(--light-border);
+      color: var(--light-text);
+    }
+
+    iframe {
+      position: fixed;
+      top: var(--nav-height);
+      left: 0;
+      width: 100%;
+      height: calc(100% - var(--nav-height));
+      border: none;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="title">New Tab 2.0</div>
+    <div class="tabs" id="tabs"></div>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </nav>
+
+  <iframe
+    id="viewer"
+    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+  ></iframe>
+
+  <script>
+    /***********************
+     * CONFIG — EDIT ONLY THIS
+     ***********************/
+    const pages = {
+      "Eggy Car": "https://cling22.github.io/EggyCar/",
+      "Polytrack": "https://t3m1n4l.github.io/polytrack/",
+      "Oj": "https://codelab.situscms.com/game/escaperoad/index.html",
+      "Drive Mad": "https://cling22.github.io/drive-mad/drive-mad-new/",
+      "Smash Karts": "https://educational-moyv.github.io/smash-karts/",
+      "Geometry Dash": "https://gamehippy.github.io/geometry-dash-unblocked/"
+    };
+
+    /***********************
+     * THEME
+     ***********************/
+    const body = document.body;
+    const themeToggle = document.getElementById("themeToggle");
+
+    function setTheme(theme) {
+      body.className = theme;
+      localStorage.setItem("theme", theme);
+      themeToggle.textContent = theme === "dark" ? "🌙" : "☀️";
+    }
+
+    setTheme(localStorage.getItem("theme") || "dark");
+
+    themeToggle.onclick = () => {
+      setTheme(body.className === "dark" ? "light" : "dark");
+    };
+
+    /***********************
+     * TAB + IFRAME CONTROL
+     ***********************/
+    const tabsContainer = document.getElementById("tabs");
+    const iframe = document.getElementById("viewer");
+
+    let switching = false;
+
+    function loadPage(url, tab) {
+      if (switching) return;
+      switching = true;
+
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      // Force unload to prevent crashes
+      iframe.src = "about:blank";
+
+      setTimeout(() => {
+        iframe.src = url;
+        switching = false;
+      }, 80);
+    }
+
+    Object.entries(pages).forEach(([name, url], index) => {
+      const tab = document.createElement("div");
+      tab.className = "tab";
+      tab.textContent = name;
+
+      tab.onclick = () => loadPage(url, tab);
+
+      tabsContainer.appendChild(tab);
+
+      if (index === 0) {
+        loadPage(url, tab);
+      }
+    });
+  </script>
+
+</body>
+</html>
