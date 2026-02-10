@@ -32,7 +32,58 @@ body {
   overflow: hidden;
 }
 
-/* ===== NAV ===== */
+.popup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+}
+
+.popup {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 26px;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  animation: pop .25s ease;
+}
+
+.popup h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+
+.popup p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.popup button {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.popup button:hover {
+  filter: brightness(1.05);
+}
+
+@keyframes pop {
+  from { transform: scale(.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 nav {
   position: fixed;
   inset: 0 0 auto 0;
@@ -46,7 +97,6 @@ nav {
   z-index: 1000;
 }
 
-/* ===== TITLE ===== */
 .title {
   font-weight: 800;
   font-size: 20px;
@@ -65,7 +115,6 @@ nav {
   border-radius: 2px;
 }
 
-/* ===== TABS ===== */
 .tabs {
   display: flex;
   gap: 6px;
@@ -149,16 +198,15 @@ nav {
   display: block;
 }
 
-/* ===== FULLSCREEN BUTTON ===== */
 .fullscreen-btn {
   padding: 6px;
   border-radius: 6px;
   cursor: pointer;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
 }
 
 .fullscreen-btn:hover {
@@ -171,7 +219,6 @@ nav {
   fill: var(--text);
 }
 
-/* ===== IFRAME ===== */
 #viewer {
   position: fixed;
   top: var(--nav-height);
@@ -185,6 +232,17 @@ nav {
 </head>
 
 <body>
+
+<div class="popup-backdrop" id="popup">
+  <div class="popup">
+    <h2>Heads up</h2>
+    <p>
+      Once this site is blocked, the URL will be changed to<br>
+      <strong>https://newertab.github.io/Newer-Tab/</strong>
+    </p>
+    <button id="popupOk">Okay</button>
+  </div>
+</div>
 
 <nav>
   <div class="title">New Tab 2</div>
@@ -205,6 +263,20 @@ nav {
 <iframe id="viewer" sandbox="allow-scripts allow-same-origin"></iframe>
 
 <script>
+
+const popup = document.getElementById("popup");
+const popupOk = document.getElementById("popupOk");
+
+if (localStorage.getItem("popupSeen")) {
+  popup.remove();
+} else {
+  popupOk.onclick = () => {
+    localStorage.setItem("popupSeen", "1");
+    popup.remove();
+  };
+}
+
+/* ===== SITE LOGIC ===== */
 const pages = {
   "Polytrack": "https://t3m1n4l.github.io/polytrack/",
   "Drive Mad": "https://cling26.github.io/drive-mad/drive-mad-new/",
@@ -229,17 +301,17 @@ const fsBtn = document.getElementById("fsBtn");
 
 const favorites = new Set(JSON.parse(localStorage.getItem("favorites") || "[]"));
 
-function save(){
+function save() {
   localStorage.setItem("favorites", JSON.stringify([...favorites]));
 }
 
-function loadGame(name, url){
+function loadGame(name, url) {
   iframe.src = url;
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.querySelector(`[data-game="${name}"]`)?.classList.add("active");
 }
 
-function build(){
+function build() {
   tabs.innerHTML = "";
   moreMenu.innerHTML = "";
 
@@ -274,11 +346,7 @@ function build(){
 }
 
 fsBtn.onclick = () => {
-  if (!document.fullscreenElement) {
-    iframe.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
+  document.fullscreenElement ? document.exitFullscreen() : iframe.requestFullscreen();
 };
 
 document.getElementById("moreWrap").onclick = e => {
